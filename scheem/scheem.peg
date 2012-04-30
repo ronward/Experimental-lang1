@@ -1,0 +1,25 @@
+
+start = 
+	expression
+
+expression = 
+	atom
+	/ ws "'" ws expr:expression { return ["quote", expr]; }
+	/ ws "(" ws list:list ws ")" ws { return list; }
+
+list =
+	left:expression ws right:list { right.unshift(left); return right; }
+	/ expr:expression { return [expr]; }
+
+
+atom = 
+	ws chars:validchar+ ws { return chars.join(""); }
+
+validchar = 
+	[0-9a-zA-Z_?!+\-=@#$%^&*/.]
+
+ws = 
+  [ \n\t]* comment*
+
+comment = 
+  ";;" [^\n]* "\n" ws
