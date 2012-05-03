@@ -13,8 +13,12 @@ list =
 
 
 atom = 
-	ws chars:validchar+ ws { return chars.join(""); }
+	number
+	/ ws chars:validchar+ ws { return chars.join(""); }
 
+number =
+	ws digits:[0-9]+ ![a-zA-Z_?!+\-=@#$%^&*/.] ws { return parseInt(digits.join("")); }
+	
 validchar = 
 	[0-9a-zA-Z_?!+\-=@#$%^&*/.]
 

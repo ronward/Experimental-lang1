@@ -3,16 +3,17 @@ var tests = [
 	["", undefined, "don't parse empty string"],
 	["atom", "atom", "parse an atom"],
 	["+", "+", "parse a + atom"],
-	["(+ x 3)", ["+", "x", "3"], null],
-	["(+ 1 (f x 3 y))", ["+", "1", ["f", "x", "3", "y"]], null],
-	[" (  + 1 \n\n(\n  f x \n3  \t y   )  )", ["+", "1", ["f", "x", "3", "y"]], "accept whitespaces"],
-	["'(1 2 3 'x)", ["quote", ["1", "2", "3", ["quote", "x"]]], "quote"], 
+	["(+ x 3)", ["+", "x", 3], null],
+	["(+ 1 (f x 3 y))", ["+", 1, ["f", "x", 3, "y"]], null],
+	[" (  + 1 \n\n(\n  f x \n3  \t y   )  )", ["+", 1, ["f", "x", 3, "y"]], "accept whitespaces"],
+	["'(1 2 3 'x)", ["quote", [1, 2, 3, ["quote", "x"]]], "quote"], 
 	[" atom ", "atom", "parse an atom with whitespaces"],
 	["atom ;;test\n  ;;more\n", "atom", "comment"],
 	[";;\n ( ;; test \na b);; test\n", ["a", "b"], "comments"]
 ];
 fs = require("fs");
-assert = require("assert");
+//assert = require("assert");
+assert =require("chai").assert;
 PEG = require("pegjs");
 log = console.log;
 

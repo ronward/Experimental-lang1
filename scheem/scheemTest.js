@@ -1,72 +1,3 @@
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Mocha Tests</title>
-  <link rel="stylesheet"
-    href="http://nathansuniversity.com/css/mocha.css" />
-  <script src=
-    "http://nathansuniversity.com/js/jquery-1.7.1.min.js">
-  </script>
-  <script src=
-    "http://nathansuniversity.com/js/chai.js">
-  </script>
-  <script src="http://nathansuniversity.com/js/mocha.js">
-  </script>
-  <script>
-  mocha.setup('tdd')
-var expect = chai.expect;    
-var assert = chai.assert;
-
-// A half-baked implementation of evalScheem
-var evalScheem = function (expr, env) {
-    // Numbers evaluate to themselves
-    var es, r, a, b;
-    es = function(i){
-        return evalScheem(expr[i], env);
-    }
-    if (typeof expr === 'number') {
-        return expr;
-    }
-    // Look at head of list for operation
-    switch (expr[0]) {
-        case '+':
-            a = es(1);
-            b = es(2);
-            if(typeof(a)!=="number" || typeof(b)!=="number"){
-                throw new Error("Expected number!");
-            }
-            return a+b;
-        case 'quote':
-            return expr[1];
-        case '=':
-            return es(1)===es(2)?"#t":"#f";
-        case '<':
-            return es(1)<es(2)?"#t":"#f";
-        case 'cons':
-            r = es(2);
-            r.unshift(es(1));
-            return r;
-        case 'car':
-            r = es(1);
-            return r[0];
-        case 'cdr':
-            r = es(1);
-            r.shift();
-            return r;
-        case 'if':
-            r = expr[1];
-            return r==="#t"?es(2):es(3);
-        case 'begin':
-            for(var i=1; i<expr.length; i++) r=es(i);
-            return r;
-        default:
-            r = env[expr[0]];
-            if(typeof(r)==="undefined") return expr[0];
-            return r;
-    }
-};
-
-// Some unit tests
 
 suite('quote', function() {
     test('a number', function() {
@@ -88,6 +19,7 @@ suite('quote', function() {
         );
     });
 });
+
 suite('add', function() {
     test('two numbers', function() {
         assert.deepEqual(
@@ -113,21 +45,25 @@ suite('add', function() {
         );
     });
 });
+
 suite('cons', function(){
     test("cons 1 (quote (2 3))", function(){
         assert.deepEqual(evalScheem(['cons', 1, ['quote', [2,3]]], {}), [1,2,3]);
     });
 });
+
 suite('car', function(){
     test("car", function(){
         assert.deepEqual(evalScheem(["car", ["quote", [1,2,3]]], {}), 1);
     });
 });
+
 suite('cdr', function(){
     test("cdr", function(){
         assert.deepEqual(evalScheem(["cdr", ["quote", [1,2,3]]], {}), [2,3]);
     });
 });
+
 suite('=', function(){
     test("= #t", function(){
         assert.deepEqual(evalScheem(["=", 2, 2], {}), "#t");
@@ -136,6 +72,7 @@ suite('=', function(){
         assert.deepEqual(evalScheem(["=", 2, 4], {}), "#f");
     });
 });
+
 suite('<', function(){
     test("1<2 #t", function(){
         assert.deepEqual(evalScheem(["<", 1, 2], {}), "#t");
@@ -144,16 +81,19 @@ suite('<', function(){
         assert.deepEqual(evalScheem(["<", 2, 1], {}), "#f");
     });
 });
+
 suite('if', function(){
     test("if '#t' 1 2", function(){
         assert.deepEqual(evalScheem(["if", '#t', 1, 2], {}), 1);
     });
 });
+
 suite('begin', function(){
     test("?", function(){
         assert.deepEqual(evalScheem(['begin', [4], ['quote', 5]], {}), 5);
     });
 });
+
 suite('var ref', function(){
     test("(x)", function(){
         assert.deepEqual(evalScheem(['x'], {x:42}), 42);
@@ -162,14 +102,4 @@ suite('var ref', function(){
         assert.deepEqual(evalScheem(["+", "x", "y"], {x:3, y:5}), 8);
     });
 });
-
-    $(function(){
-      mocha.run();
-    });
-  </script>
-</head>
-<body>
-  <div id="mocha"></div>
-</body>
-</html>
 
