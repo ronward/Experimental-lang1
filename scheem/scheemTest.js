@@ -1,5 +1,8 @@
 
 suite('quote', function() {
+    test("mocha test", function(){
+        assert.deepEqual(1,1);
+    });
     test('a number', function() {
         assert.deepEqual(
             evalScheem(['quote', 3], {}),
@@ -37,6 +40,11 @@ suite('add', function() {
         expect(function(){
             evalScheem(['+', 'dog', 'cat'], {});
         }).to.throw();
+    });
+    test("a dog and a cat 2", function() {
+        assert.throw(function(){
+            evalScheem(['+', 'dog', 'cat'], {});
+        });
     });
     test("2+2", function(){
         assert.deepEqual(
@@ -102,4 +110,78 @@ suite('var ref', function(){
         assert.deepEqual(evalScheem(["+", "x", "y"], {x:3, y:5}), 8);
     });
 });
+
+suite('parse', function(){
+    test('a number', function(){
+        assert.deepEqual(
+            SCHEEM.parse('42'), 42
+        );
+    });
+    test('a variable', function(){
+        assert.deepEqual(
+            SCHEEM.parse('x'), 'x'
+        );
+    });
+});
+
+suite('evalScheemString', function(){
+    test('1', function(){
+        assert.deepEqual(
+            evalScheemString('1'), 1
+        );
+    });
+    test('(+ 4 5)', function(){
+        assert.deepEqual(
+            evalScheemString("(+ 4 5)"), 9
+        );
+    });
+    test('(* 4 6)', function(){
+        assert.deepEqual(
+            evalScheemString('(* 4 6)'), 24
+        );
+    });
+    test('(* 2 (+ 4 5))', function(){
+        assert.deepEqual(
+            evalScheemString('(* 2 (+ 4 5))'), 18
+        );
+    });
+    test("(cons 3 '(6 8))", function(){
+        assert.deepEqual(
+            evalScheemString("(cons 3 '(6 8))"), [3,6,8]
+        );
+    });
+    test("(car '(1 2 3))", function(){
+        assert.deepEqual(
+            evalScheemString("(car '(1 2 3))"), 1
+        );
+    });
+    test("(cdr '(1 2 3))", function(){
+        assert.deepEqual(
+            evalScheemString("(cdr '(1 2 3))"), [2,3]
+        );
+    });
+    test('=', function(){
+        var src = "(= 5 5)";
+        assert.deepEqual(
+            evalScheemString(src), "#t"
+        );
+        src = "(= 5 4)";
+        assert.deepEqual(
+            evalScheemString(src), "#f"
+        );
+    });
+    test('if', function(){
+        var src = "(if (= 5 5) 42 11)";
+        assert.deepEqual(
+            evalScheemString(src), 42
+        );
+    });
+    test('begin', function(){
+        var src = "(begin (+ 3 4) '(6 7) (+ 40 2))";
+        assert.deepEqual(
+            evalScheemString(src), 42
+        );
+    });
+});
+
 

@@ -1,4 +1,22 @@
 // A half-baked implementation of evalScheem
+var log = function(msg){
+    if(console && console.log){
+        console.log(msg);
+    }
+};
+
+var evalScheemString = function(src, env) {
+    // Note: assumes SCHEEM is accessable 
+    var ast, r;
+    env = env || {};
+    log("src='"+src+"'");
+    ast = SCHEEM.parse(src);
+    log("ast=" + JSON.stringify(ast));
+    r = evalScheem(ast, env);
+    log("result="+r);
+    return r;
+};
+
 var evalScheem = function (expr, env) {
     // Numbers evaluate to themselves
     var es, r, a, b;
@@ -17,6 +35,24 @@ var evalScheem = function (expr, env) {
                 throw new Error("Expected number!");
             }
             return a+b;
+        case '*':
+            a = es(1); b = es(2);
+            if(typeof(a)!=="number" || typeof(b)!=="number"){
+                throw new Error("Expected number!");
+            }
+            return a*b;
+        case '-':
+            a = es(1); b = es(2);
+            if(typeof(a)!=="number" || typeof(b)!=="number"){
+                throw new Error("Expected number!");
+            }
+            return a-b;
+        case '/':
+            a = es(1); b = es(2);
+            if(typeof(a)!=="number" || typeof(b)!=="number"){
+                throw new Error("Expected number!");
+            }
+            return a/b;
         case 'quote':
             return expr[1];
         case '=':
