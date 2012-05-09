@@ -71,7 +71,8 @@ var evalScheem = function (expr, env) {
             r.shift();
             return r;
         case 'if':
-            r = expr[1];
+            r = es(1);
+            log("r="+r);
             return r==="#t"?es(2):es(3);
         case 'begin':
             for(var i=1; i<expr.length; i++) r=es(i);

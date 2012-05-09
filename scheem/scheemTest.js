@@ -176,6 +176,12 @@ suite('evalScheemString', function(){
             evalScheemString(src), 42
         );
     });
+    test('if else', function(){
+        var src = "(if (= 5 4) 42 11)";
+        assert.deepEqual(
+            evalScheemString(src), 11
+        );
+    });
     test('begin', function(){
         var src = "(begin (+ 3 4) '(6 7) (+ 40 2))";
         assert.deepEqual(
