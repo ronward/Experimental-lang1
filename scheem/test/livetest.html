@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Scheem live test</title>
+    <script src="jquery-1.7.1.min.js"></script>
+    <script src="../evalScheem.js"></script>
+    <script src="../parser.js"></script>
+  </head>
+  <body>
+    <h4>Scheem live test</h4>
+    <textarea id='input' rows='8' cols='80'>(+ 5 8)</textarea>
+    <input id='run' type='button' value='Run'/>
+    <div id='consoleOutput' style='border:1px solid green;padding:1em;'>
+      Scheem output results goes here!
+    </div>
+    <script>
+        var consoleOutput, input, run, log, result;
+        consoleOutput = $("#consoleOutput");
+        run = $("#run");
+        log = function(msg, color){
+            color = color || "black";
+            consoleOutput.append("<div style='color:"+
+                color+";'>"+msg+"</div>");
+        };
+        run.click(function(){
+            input = $("#input").val();
+            consoleOutput.html("");
+            log("Your input was: '" + input + "'");
+            try{
+                ast = SCHEEM.parse(input);
+                log("Parsed: " + JSON.stringify(ast));
+            } catch(e) {
+                log("Parse Error: " + e, "red");
+                return;
+            }
+            try{
+                result = evalScheem(ast, {});
+                log("Result: " + JSON.stringify(result), "green");
+            } catch(e) {
+                log("Eval Error: " + e, "red");
+            }
+        });
+    </script>
+  </body>
+</html>

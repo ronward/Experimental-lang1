@@ -19,7 +19,8 @@ var evalScheemString = function(src, env) {
 
 var evalScheem = function (expr, env) {
     // Numbers evaluate to themselves
-    var es, r, a, b;
+    var es, r, a, b, v, value, e;
+    //log("evalScheem("+JSON.stringify(expr)+", env="+JSON.stringify(env)+")");
     es = function(i){
         return evalScheem(expr[i], env);
     }
@@ -28,6 +29,27 @@ var evalScheem = function (expr, env) {
     }
     // Look at head of list for operation
     switch (expr[0]) {
+        case 'let-one':
+            v = expr[1];
+            value = es(2);
+            e = {};
+            e.__proto__ = env;
+            e[v]=value;
+            r = evalScheem(expr[3], e);
+            return r;
+        case 'define':
+            v = expr[1];
+            value = ex(2);
+            env[v] = value;
+            return value;
+        case 'set!':
+            v = expr[1];
+            if(typeof(env[v])==="undefined"){
+                throw new Error("'"+v+"' is not defined!");
+            }
+            value = value;
+            env[v] = value;
+            return value;
         case '+':
             a = es(1);
             b = es(2);
@@ -72,7 +94,6 @@ var evalScheem = function (expr, env) {
             return r;
         case 'if':
             r = es(1);
-            log("r="+r);
             return r==="#t"?es(2):es(3);
         case 'begin':
             for(var i=1; i<expr.length; i++) r=es(i);
