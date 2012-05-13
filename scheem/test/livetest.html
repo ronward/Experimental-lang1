@@ -14,7 +14,7 @@
       Scheem output results goes here!
     </div>
     <script>
-        var consoleOutput, input, run, log, result;
+        var consoleOutput, input, run, log, result, env;
         consoleOutput = $("#consoleOutput");
         run = $("#run");
         log = function(msg, color){
@@ -34,8 +34,10 @@
                 return;
             }
             try{
-                result = evalScheem(ast, {});
+                env = getInitEnv();
+                result = evalScheem(ast, env);
                 log("Result: " + JSON.stringify(result), "green");
+                log("env: " + JSON.stringify(env));
             } catch(e) {
                 log("Eval Error: " + e, "red");
             }

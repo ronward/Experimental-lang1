@@ -19,88 +19,127 @@ var evalScheemString = function(src, env) {
 
 var evalScheem = function (expr, env) {
     // Numbers evaluate to themselves
-    var es, r, a, b, v, value, e;
+    var es, r, a, b, v, n, i, value, e, f, args, vars, body;
+    var newEnv;
+    var setEnv, defineVar, getExpressions;
     //log("evalScheem("+JSON.stringify(expr)+", env="+JSON.stringify(env)+")");
     es = function(i){
         return evalScheem(expr[i], env);
-    }
+    };
+    setEnv = function(env, n, v){
+        if(env.hasOwnProperty(n)){
+            env[n]=v;
+            return;
+        }
+        if(env.__proto__.__proto__===null){
+            //p[n]=v;
+            throw new Error("'"+n+"' is not defined!");
+        }
+        setEnv(env.__proto__, n, v);
+    };
+    defineVar = function(env, n, v){
+        //while(env.__proto__.__proto__!==null){
+        //    env = env.__proto__;
+        //}
+        env[n]=v;
+    };
+    getExpressions = function(){
+        var args=[], i;
+        for(i=1; i<expr.length; i+=1){
+            args.push(evalScheem(expr[i], env));
+        }
+        return args;
+    };
+    
     if (typeof expr === 'number') {
         return expr;
+    } else if (typeof expr === 'string') {
+        r = env[expr];
+        return r;
     }
     // Look at head of list for operation
     switch (expr[0]) {
-        case 'let-one':
-            v = expr[1];
-            value = es(2);
-            e = {};
-            e.__proto__ = env;
-            e[v]=value;
-            r = evalScheem(expr[3], e);
-            return r;
+        case 'lambda':
+            vars = expr[1];
+            body = expr[2];
+            f = function(){
+                newEnv = {};
+                newEnv.__proto__ = env;
+                for(i=0; i<vars.length; i+=1){
+                    newEnv[vars[i]] = arguments[i];
+                }
+                return evalScheem(body, newEnv);
+            };
+            return f;
         case 'define':
-            v = expr[1];
-            value = ex(2);
-            env[v] = value;
+            n = expr[1];
+            value = es(2);
+            //env[n] = value;
+            defineVar(env, n, value);
             return value;
         case 'set!':
-            v = expr[1];
-            if(typeof(env[v])==="undefined"){
-                throw new Error("'"+v+"' is not defined!");
+            n = expr[1];
+            if((typeof(env[n]))==="undefined"){
+                throw new Error("'"+n+"' is not defined!!!");
             }
-            value = value;
-            env[v] = value;
+            value = es(2);
+            setEnv(env, n, value); 
             return value;
-        case '+':
-            a = es(1);
-            b = es(2);
-            if(typeof(a)!=="number" || typeof(b)!=="number"){
-                throw new Error("Expected number!");
-            }
-            return a+b;
-        case '*':
-            a = es(1); b = es(2);
-            if(typeof(a)!=="number" || typeof(b)!=="number"){
-                throw new Error("Expected number!");
-            }
-            return a*b;
-        case '-':
-            a = es(1); b = es(2);
-            if(typeof(a)!=="number" || typeof(b)!=="number"){
-                throw new Error("Expected number!");
-            }
-            return a-b;
-        case '/':
-            a = es(1); b = es(2);
-            if(typeof(a)!=="number" || typeof(b)!=="number"){
-                throw new Error("Expected number!");
-            }
-            return a/b;
         case 'quote':
-            return expr[1];
-        case '=':
-            return es(1)===es(2)?"#t":"#f";
-        case '<':
-            return es(1)<es(2)?"#t":"#f";
-        case 'cons':
-            r = es(2);
-            r.unshift(es(1));
-            return r;
-        case 'car':
-            r = es(1);
-            return r[0];
-        case 'cdr':
-            r = es(1);
-            r.shift();
-            return r;
+            v = expr[1];
+            log("quote");
+            return v;
         case 'if':
             r = es(1);
             return r==="#t"?es(2):es(3);
         case 'begin':
             for(var i=1; i<expr.length; i++) r=es(i);
             return r;
+        case 'let':
+            // (let ((var expr) ...) body)
+            newEnv = {};
+            newEnv.__proto__ = env;
+            expr[1].forEach(function(i){
+                newEnv[i[0]] = evalScheem(i[1], newEnv);
+            });
+            return evalScheem(expr[2], newEnv);
         default:
-            r = env[expr[0]];
-            if(typeof(r)==="undefined") return expr[0];
+            f = es(0);
+            args = getExpressions();
+            r = f.apply(null, args);
             return r;
     }
 };
+
+var getInitEnv = function(){
+    var env = {
+        "+":function(a, b) { return a+b; },
+        "-":function(a, b) { return a-b; },
+        "*":function(a, b) { return a*b; },
+        "/":function(a, b) { return a/b; },
+        "=":function(a, b) { return a===b?"#t":"#f"; },
+        "<":function(a, b) { return a>b?"#t":"#f"; },
+        ">":function(a, b) { return a<b?"#t":"#f"; },
+        "!=":function(a, b) { return a!==b?"#t":"#f"; },
+        cons:function(a, list) { var c=list.slice(0); 
+                                    c.unshift(a);
+                                    return c; },
+        car:function(list) { return list[0]; },
+        cdr:function(list) { return list.slice(1); },
+        alert:function(msg) {   if(alert){
+                                    alert(msg);
+                                }else if(console && console.log){
+                                    console.log(msg);
+                                }
+                                return msg; },
+        toJSON:function(obj) { return JSON.stringify(obj); },
+        _end_:function(a, b) {}
+    };
+    return env;
+};
+
+
+
+
+
+
