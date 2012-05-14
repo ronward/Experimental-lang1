@@ -1,14 +1,17 @@
 // A half-baked implementation of evalScheem
+var enableLogging = true;
 var log = function(msg){
-    if(console && console.log){
-        console.log(msg);
+    if(enableLogging){
+        if(console && console.log){
+            console.log(msg);
+        }
     }
 };
 
 var evalScheemString = function(src, env) {
     // Note: assumes SCHEEM is accessable 
     var ast, r;
-    env = env || {};
+    env = env || getInitEnv();
     log("src='"+src+"'");
     ast = SCHEEM.parse(src);
     log("ast=" + JSON.stringify(ast));
@@ -22,6 +25,9 @@ var evalScheem = function (expr, env) {
     var es, r, a, b, v, n, i, value, e, f, args, vars, body;
     var newEnv;
     var setEnv, defineVar, getExpressions;
+    if(!env){
+        env = getInitEnv();
+    }
     //log("evalScheem("+JSON.stringify(expr)+", env="+JSON.stringify(env)+")");
     es = function(i){
         return evalScheem(expr[i], env);
@@ -54,7 +60,11 @@ var evalScheem = function (expr, env) {
     if (typeof expr === 'number') {
         return expr;
     } else if (typeof expr === 'string') {
-        r = env[expr];
+        if(expr.substr(0,1)==="'" && expr.substr(-1,1)==="'"){
+            r = expr.substr(1, expr.length-2); 
+        } else {
+            r = env[expr];
+        }
         return r;
     }
     // Look at head of list for operation
@@ -112,14 +122,20 @@ var evalScheem = function (expr, env) {
 };
 
 var getInitEnv = function(){
-    var env = {
-        "+":function(a, b) { return a+b; },
-        "-":function(a, b) { return a-b; },
-        "*":function(a, b) { return a*b; },
-        "/":function(a, b) { return a/b; },
+    var env, assertNums;
+    assertNums = function(a, b){
+        if(typeof(a)!=="number" || typeof(b)!=="number"){
+            throw new Error("Expected numbers only");
+        }
+    };
+    env = {
+        "+":function(a, b) { assertNums(a, b); return a+b; },
+        "-":function(a, b) { assertNums(a, b); return a-b; },
+        "*":function(a, b) { assertNums(a, b); return a*b; },
+        "/":function(a, b) { assertNums(a, b); return a/b; },
         "=":function(a, b) { return a===b?"#t":"#f"; },
-        "<":function(a, b) { return a>b?"#t":"#f"; },
-        ">":function(a, b) { return a<b?"#t":"#f"; },
+        "<":function(a, b) { return a<b?"#t":"#f"; },
+        ">":function(a, b) { return a>b?"#t":"#f"; },
         "!=":function(a, b) { return a!==b?"#t":"#f"; },
         cons:function(a, list) { var c=list.slice(0); 
                                     c.unshift(a);

@@ -1,23 +1,21 @@
 
 suite('quote', function() {
-    test("mocha test", function(){
-        assert.deepEqual(1,1);
-    });
+    enableLogging = false;
     test('a number', function() {
         assert.deepEqual(
-            evalScheem(['quote', 3], {}),
+            evalScheem(['quote', 3]),
             3
         );
     });
     test('an atom', function() {
         assert.deepEqual(
-            evalScheem(['quote', 'dog'], {}),
+            evalScheem(['quote', 'dog']),
             'dog'
         );
     });
     test('a list', function() {
         assert.deepEqual(
-            evalScheem(['quote', [1, 2, 3]], {}),
+            evalScheem(['quote', [1, 2, 3]]),
             [1, 2, 3]
         );
     });
@@ -26,29 +24,29 @@ suite('quote', function() {
 suite('add', function() {
     test('two numbers', function() {
         assert.deepEqual(
-            evalScheem(['+', 3, 5], {}),
+            evalScheem(['+', 3, 5]),
             8
         );
     });
     test('a number and an expression', function() {
         assert.deepEqual(
-            evalScheem(['+', 3, ['+', 2, 2]], {}),
+            evalScheem(['+', 3, ['+', 2, 2]]),
             7
         );
     });
     test('a dog and a cat', function() {
         expect(function(){
-            evalScheem(['+', 'dog', 'cat'], {});
+            evalScheem(['+', 'dog', 'cat']);
         }).to.throw();
     });
     test("a dog and a cat 2", function() {
         assert.throw(function(){
-            evalScheem(['+', 'dog', 'cat'], {});
+            evalScheem(['+', 'dog', 'cat']);
         });
     });
     test("2+2", function(){
         assert.deepEqual(
-            evalScheem(['+', 2, 2], {}), 
+            evalScheem(['+', 2, 2]), 
             4
         );
     });
@@ -56,58 +54,64 @@ suite('add', function() {
 
 suite('cons', function(){
     test("cons 1 (quote (2 3))", function(){
-        assert.deepEqual(evalScheem(['cons', 1, ['quote', [2,3]]], {}), [1,2,3]);
+        assert.deepEqual(evalScheem(['cons', 1, ['quote', [2,3]]]), [1,2,3]);
     });
 });
 
 suite('car', function(){
     test("car", function(){
-        assert.deepEqual(evalScheem(["car", ["quote", [1,2,3]]], {}), 1);
+        assert.deepEqual(evalScheem(["car", ["quote", [1,2,3]]]), 1);
     });
 });
 
 suite('cdr', function(){
     test("cdr", function(){
-        assert.deepEqual(evalScheem(["cdr", ["quote", [1,2,3]]], {}), [2,3]);
+        assert.deepEqual(evalScheem(["cdr", ["quote", [1,2,3]]]), [2,3]);
     });
 });
 
 suite('=', function(){
     test("= #t", function(){
-        assert.deepEqual(evalScheem(["=", 2, 2], {}), "#t");
+        assert.deepEqual(evalScheem(["=", 2, 2]), "#t");
     });
     test("= #f", function(){
-        assert.deepEqual(evalScheem(["=", 2, 4], {}), "#f");
+        assert.deepEqual(evalScheem(["=", 2, 4]), "#f");
     });
 });
 
 suite('<', function(){
     test("1<2 #t", function(){
-        assert.deepEqual(evalScheem(["<", 1, 2], {}), "#t");
+        assert.deepEqual(evalScheem(["<", 1, 2]), "#t");
     });
     test("2<1 #f", function(){
-        assert.deepEqual(evalScheem(["<", 2, 1], {}), "#f");
+        assert.deepEqual(evalScheem(["<", 2, 1]), "#f");
     });
 });
 
 suite('if', function(){
-    test("if '#t' 1 2", function(){
-        assert.deepEqual(evalScheem(["if", '#t', 1, 2], {}), 1);
+    test("if (= 1 1) 1 2", function(){
+        assert.deepEqual(evalScheem(["if", ['=', 1, 1], 1, 2]), 1);
     });
 });
 
 suite('begin', function(){
     test("?", function(){
-        assert.deepEqual(evalScheem(['begin', [4], ['quote', 5]], {}), 5);
+        assert.deepEqual(evalScheem(['begin', ['+', 1, 4], ['quote', 5]]), 5);
     });
 });
 
 suite('var ref', function(){
+    var env;
     test("(x)", function(){
-        assert.deepEqual(evalScheem(['x'], {x:42}), 42);
+        env = getInitEnv();
+        env.x = 42;
+        assert.deepEqual(evalScheem("x", env), 42);
     });
     test("(+ x y)", function(){
-        assert.deepEqual(evalScheem(["+", "x", "y"], {x:3, y:5}), 8);
+        env = getInitEnv();
+        env.x = 3;
+        env.y = 5;
+        assert.deepEqual(evalScheem(["+", "x", "y"], env), 8);
     });
 });
 
@@ -190,4 +194,64 @@ suite('evalScheemString', function(){
     });
 });
 
+suite('evalScheemString 2', function(){
+    var src;
+    test('Define a function and call it', function(){
+        src = "(begin (define fn (lambda (x) (+ 40 x))) (fn 2))";
+        assert.deepEqual(
+            evalScheemString(src), 42
+        );
+    });
+    test('Calling an anonymous function', function(){
+        src = "((lambda (x) (+ x 38)) 4)";
+        assert.deepEqual(
+            evalScheemString(src), 42
+        );
+    });
+    test('Passing function as a value to another function', function(){
+        src = "(begin (define fn (lambda (x) (+ x 2))) " +
+              " ((lambda (fa) (fa 4)) fn))";
+        assert.deepEqual(
+            evalScheemString(src), 6
+        );
+    });
+    test('Inner functiion uses values from enclosing function', function(){
+        src = "((lambda (x) ("+
+        " (begin (define y 5) ((lambda (z) (+x y)) 0))"+
+        ")))";
+        assert.deepEqual(
+            evalScheemString(src), 42
+        );
+    });
+    test('Argument to a function chadows a global var', function(){
+        src = "42";
+        assert.deepEqual(
+            evalScheemString(src), 42
+        );
+    });
+    test('An inner function modifies a variable in teh outer function', function(){
+        src = "42";
+        assert.deepEqual(
+            evalScheemString(src), 42
+        );
+    });
+    test('An outer function returns an inner function', function(){
+        src = "42";
+        assert.deepEqual(
+            evalScheemString(src), 42
+        );
+    });
+    test('An outer function returns an inner function (closure)', function(){
+        src = "42";
+        assert.deepEqual(
+            evalScheemString(src), 42
+        );
+    });
+    test('A function in a define that calls itself recursively x times', function(){
+        src = "42";
+        assert.deepEqual(
+            evalScheemString(src), 42
+        );
+    });
+});
 
