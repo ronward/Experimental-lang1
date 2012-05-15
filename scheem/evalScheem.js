@@ -148,6 +148,7 @@ var getInitEnv = function(){
                                     console.log(msg);
                                 }
                                 return msg; },
+        log:function(msg) { if(log){log(msg);} },
         toJSON:function(obj) { return JSON.stringify(obj); },
         _end_:function(a, b) {}
     };

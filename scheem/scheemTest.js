@@ -216,41 +216,45 @@ suite('evalScheemString 2', function(){
         );
     });
     test('Inner functiion uses values from enclosing function', function(){
-        src = "((lambda (x) ("+
-        " (begin (define y 5) ((lambda (z) (+x y)) 0))"+
-        ")))";
+        src = "((lambda (x) (begin (define y 2)"+
+        "((lambda (z) (+ x (+ y z))) 22)"+
+        ")) 18)";
         assert.deepEqual(
             evalScheemString(src), 42
         );
     });
-    test('Argument to a function chadows a global var', function(){
-        src = "42";
+    test('Argument to a function shadows a global var', function(){
+        src = "(begin (define x 4) ((lambda (x) (+ x 0)) 42))";
         assert.deepEqual(
             evalScheemString(src), 42
         );
     });
-    test('An inner function modifies a variable in teh outer function', function(){
-        src = "42";
+    test('An inner function modifies a variable in the outer function', function(){
+        src = "((lambda (x) (begin (define y 1)" +
+                "((lambda (z) (set! x z)) 41) (+ x y))) 7)";
         assert.deepEqual(
             evalScheemString(src), 42
         );
     });
     test('An outer function returns an inner function', function(){
-        src = "42";
+        src = "(((lambda (x) (lambda (z) (+ z x))) 2) 40)";
         assert.deepEqual(
             evalScheemString(src), 42
         );
     });
     test('An outer function returns an inner function (closure)', function(){
-        src = "42";
+        src = "(((lambda (x) (lambda (z) (+ z x))) 2) 40)";
         assert.deepEqual(
             evalScheemString(src), 42
         );
     });
     test('A function in a define that calls itself recursively x times', function(){
-        src = "42";
+        src = "(begin " +
+              " (define fn (lambda (x)" + 
+              "  (begin (if (= x 1) 1 (+ x (fn (- x 1)))))) ) " +
+              " (fn 9))";
         assert.deepEqual(
-            evalScheemString(src), 42
+            evalScheemString(src), 45
         );
     });
 });
